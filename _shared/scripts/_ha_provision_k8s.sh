@@ -11,12 +11,11 @@ NETWORK_IP_OFFSET=$(echo "$ARGS_JSON" | jq -r '.network.ip_offset')
 K8S_VERSION=$(echo "$ARGS_JSON" | jq -r '.k8s.k8s_version')
 CONTAINERD_VERSION=$(echo "$ARGS_JSON" | jq -r '.k8s.containerd_version')
 SHARED_DIR=$(echo "$ARGS_JSON" | jq -r '.shared_dir')
-
 NODE_IP_ADDRS=""
 for (( i=1; i<=CONTROL_PLANE_COUNT; i++ )); do NODE_IP_ADDRS+=" $NETWORK_SUBNET.$((NETWORK_IP_OFFSET + i))"; done
 for (( i=1; i<=WORKER_COUNT; i++ )); do NODE_IP_ADDRS+=" $NETWORK_SUBNET.$((NETWORK_IP_OFFSET + 10 + i))"; done
-
 SSH_PREFIX="-o PreferredAuthentications=publickey -o StrictHostKeyChecking=no -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null root"
+
 # --- MAIN SCRIPT ---
 echo "--- 노드 상태 체크 ---"
 echo "IP 목록: $NODE_IP_ADDRS"
@@ -36,15 +35,20 @@ while true; do
         sleep 10
     fi
 done
+echo "--- 스크립트 복사 ---"
+for NODE_IP in $NODE_IP_ADDRS; do
+    ssh $SSH_PREFIX@$NODE_IP "cp /$SHARED_DIR/scripts/* /tmp/ && chmod +x /tmp/*.sh"
+done
+
 
 echo "--- 쿠버네티스 초기 설정 ---"
 for NODE_IP in $NODE_IP_ADDRS; do
-    ssh $SSH_PREFIX@$NODE_IP "sudo /$SHARED_DIR/scripts/_k8s_init.sh /$SHARED_DIR/args.json" && echo "Initialized $NODE_IP" &
+    ssh $SSH_PREFIX@$NODE_IP "sudo /tmp/_k8s_init.sh" && echo "Initialized $NODE_IP" &
 done
 wait
 
 echo "--- 첫 번째 노드 초기화 (kubeadm init) ---"
-ssh $SSH_PREFIX@$NETWORK_SUBNET.$((NETWORK_IP_OFFSET + 1)) "sudo /$SHARED_DIR/scripts/_k8s_kubeadm_init.sh /$SHARED_DIR/args.json > /dev/null 2>&1" && echo "kubeadm init complete"
+ssh $SSH_PREFIX@$NETWORK_SUBNET.$((NETWORK_IP_OFFSET + 1)) "sudo /tmp/_k8s_kubeadm_init.sh > /dev/null 2>&1" && echo "kubeadm init complete"
 
 echo "--- 컨트롤 플레인 노드 조인 ---"
 if [[ ! -f "/$SHARED_DIR/kubeadm_control_join.sh" ]] || [[ ! -f "/$SHARED_DIR/kubeadm_worker_join.sh" ]]; then
@@ -53,12 +57,20 @@ if [[ ! -f "/$SHARED_DIR/kubeadm_control_join.sh" ]] || [[ ! -f "/$SHARED_DIR/ku
 fi
 
 for (( i=2; i<=CONTROL_PLANE_COUNT; i++ )); do
-    ssh $SSH_PREFIX@$NETWORK_SUBNET.$((NETWORK_IP_OFFSET + i)) "sudo /$SHARED_DIR/kubeadm_control_join.sh $SHARED_DIR/args.json > /dev/null 2>&1" &
+    ssh $SSH_PREFIX@$NETWORK_SUBNET.$((NETWORK_IP_OFFSET + i)) "cp /$SHARED_DIR/kubeadm_control_join.sh /tmp/ && chmod +x /tmp/kubeadm_control_join.sh && sudo /tmp/kubeadm_control_join.sh $SHARED_DIR/args.json > /dev/null 2>&1" &
 done
 echo "--- 워커 노드 조인 ---"
 for (( i=1; i<=WORKER_COUNT; i++ )); do
-    ssh $SSH_PREFIX@$NETWORK_SUBNET.$((NETWORK_IP_OFFSET + 10 + i)) "sudo /$SHARED_DIR/kubeadm_worker_join.sh $SHARED_DIR/args.json > /dev/null 2>&1" &
+    ssh $SSH_PREFIX@$NETWORK_SUBNET.$((NETWORK_IP_OFFSET + 10 + i)) "cp /$SHARED_DIR/kubeadm_worker_join.sh /tmp/ && chmod +x /tmp/kubeadm_worker_join.sh && sudo /tmp/kubeadm_worker_join.sh $SHARED_DIR/args.json > /dev/null 2>&1" &
 done
+
+echo "--- 노드 추가 설정---"
+for NODE_IP in $NODE_IP_ADDRS; do
+    ssh $SSH_PREFIX@$NODE_IP "sudo /tmp/_k8s_post_setting.sh"
+done
+
+
+
 
 echo "---------------------------------------------------------"
 echo "---------------------------------------------------------"

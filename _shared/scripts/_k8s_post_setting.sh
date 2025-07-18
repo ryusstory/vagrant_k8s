@@ -1,4 +1,6 @@
 #!/bin/bash
+ARGS_JSON=$(cat /_shared/args.json)
+SHARED_DIR=$(echo $ARGS_JSON | jq -r '.shared_dir')
 
 echo "[TASK 2] Setting kube config file"
 mkdir -p $HOME/.kube

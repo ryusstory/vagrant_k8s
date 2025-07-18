@@ -15,8 +15,8 @@ CONFIG = {
     containerd_version: '2.1.3'
   },
   node_counts: {
-    control_plane: 3,
-    worker: 2
+    control_plane: 1,
+    worker: 1
   },
   node_resources: {
     control_plane: {

@@ -26,7 +26,7 @@ swapoff -a && sed -i '/swap/s/^/#/' /etc/fstab
 rm -f /swapfile >/dev/null 2>&1
 
 apt update -qq >/dev/null 2>&1
-apt-get install apt-transport-https ca-certificates curl gpg -y -qq >/dev/null 2>&1
+apt install apt-transport-https ca-certificates curl gpg -y -qq >/dev/null 2>&1
 
 # Download the public signing key for the Kubernetes package repositories.
 mkdir -p -m 755 /etc/apt/keyrings
@@ -64,12 +64,12 @@ if [[ $CONTAINERD_VERSION == 2.* ]]; then
 else
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
   echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-  apt-get install -y containerd.io=$CONTAINERD_VERSION >/dev/null
+  apt install -y containerd.io=$CONTAINERD_VERSION >/dev/null
 fi
 
-apt list -a kubelet | grep $ARCH > /tmp/k8s_versions.txt >/dev/null 2>&1
+apt list -a kubelet | grep $ARCH > /tmp/k8s_versions.txt
 K8S_FULL_VERSION=$(cat /tmp/k8s_versions.txt | head -n 1 | awk '{print $2}')
-apt-get install -y kubelet=$K8S_FULL_VERSION kubectl=$K8S_FULL_VERSION kubeadm=$K8S_FULL_VERSION >/dev/null 2>&1
+apt install -y kubelet=$K8S_FULL_VERSION kubectl=$K8S_FULL_VERSION kubeadm=$K8S_FULL_VERSION >/dev/null 2>&1
 apt-mark hold kubelet kubeadm kubectl >/dev/null 2>&1
 
 # containerd configure to default and cgroup managed by systemd
@@ -86,7 +86,7 @@ EOF
 systemctl restart containerd && systemctl enable containerd >/dev/null 2>&1
 systemctl enable --now kubelet >/dev/null 2>&1
 
-apt-get install -y bridge-utils sshpass net-tools conntrack ngrep tcpdump ipset arping wireguard jq tree bash-completion unzip kubecolor >/dev/null 2>&1
+apt install -y bridge-utils sshpass net-tools conntrack ngrep tcpdump ipset arping wireguard jq tree bash-completion unzip kubecolor >/dev/null 2>&1
 
 echo ">>>> Initial Config End <<<<"
 touch ~/.$(basename "$0").done
