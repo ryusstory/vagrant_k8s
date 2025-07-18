@@ -2,4 +2,4 @@
 *.pub
 *.json
 .vagrant
-_shared/*.sh
+_shared/*
