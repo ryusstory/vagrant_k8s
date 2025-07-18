@@ -56,7 +56,7 @@ if [[ $CONTAINERD_VERSION == 2.* ]]; then
   tar -xvf containerd-$CONTAINERD_VERSION-linux-$ARCH.tar.gz &>/dev/null
   cp bin/* /usr/local/bin/ 2>/dev/null
   rm -f containerd-$CONTAINERD_VERSION-linux-$ARCH.tar.gz 2>/dev/null
-  wget https://raw.githubusercontent.com/containerd/containerd/v$CONTAINERD_VERSION/containerd.service -O /etc/systemd/system/containerd.service 2>/dev/null
+  wget https://raw.githubusercontent.com/containerd/containerd/v$CONTAINERD_VERSION/containerd.service -O /etc/systemd/system/containerd.service >/dev/null 2>&1
   sudo mkdir -p /etc/containerd
   sudo containerd config default | sudo tee /etc/containerd/config.toml >/dev/null
   wget https://github.com/opencontainers/runc/releases/download/v1.3.0/runc.$ARCH -O /usr/local/sbin/runc 2>/dev/null
@@ -67,7 +67,7 @@ else
   apt-get install -y containerd.io=$CONTAINERD_VERSION >/dev/null
 fi
 
-apt list -a kubelet | grep $ARCH > /tmp/k8s_versions.txt 2>/dev/null
+apt list -a kubelet | grep $ARCH > /tmp/k8s_versions.txt >/dev/null 2>&1
 K8S_FULL_VERSION=$(cat /tmp/k8s_versions.txt | head -n 1 | awk '{print $2}')
 apt-get install -y kubelet=$K8S_FULL_VERSION kubectl=$K8S_FULL_VERSION kubeadm=$K8S_FULL_VERSION >/dev/null 2>&1
 apt-mark hold kubelet kubeadm kubectl >/dev/null 2>&1
@@ -83,8 +83,8 @@ image-endpoint: unix:///run/containerd/containerd.sock
 EOF
 
 # ready to install for k8s 
-systemctl restart containerd && systemctl enable containerd
-systemctl enable --now kubelet
+systemctl restart containerd && systemctl enable containerd >/dev/null 2>&1
+systemctl enable --now kubelet >/dev/null 2>&1
 
 apt-get install -y bridge-utils sshpass net-tools conntrack ngrep tcpdump ipset arping wireguard jq tree bash-completion unzip kubecolor >/dev/null 2>&1
 

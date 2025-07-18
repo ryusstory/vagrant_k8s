@@ -1,5 +1,10 @@
+# 전역
 *.log
 *.pub
 *.json
-.vagrant
+
+# .vagrant 폴더
+.vagrant/
+
+# _shared 내의 파일만
 _shared/*

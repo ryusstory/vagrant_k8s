@@ -59,6 +59,7 @@ Vagrant.configure("2") do |config|
     ]
     subconfig.vm.provision "shell", path: "_ha_setup_haproxy.sh", args: [ CONFIG.to_json ]
     subconfig.vm.provision "shell", path: "_ha_nohup_provision.sh", args: [ CONFIG.to_json ]
+    subconfig.vm.post_up_message = "\n tail -f #{CONFIG[:shared_dir]}/ha.log \n"
   end
 
   (1..CONFIG[:node_counts][:control_plane]).each do |i|
@@ -96,5 +97,4 @@ Vagrant.configure("2") do |config|
       subconfig.vm.provision "shell", inline: "cat /_shared/ha_id_rsa.pub >> ~/.ssh/authorized_keys"
     end
   end
-  config.vm.post_up_message = "\n\n tail -f #{CONFIG[:shared_dir]}/ha.log \n\n"
 end
