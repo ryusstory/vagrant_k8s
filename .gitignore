@@ -1,0 +1,5 @@
+*.log
+*.pub
+*.json
+.vagrant
+_shared/*.sh
