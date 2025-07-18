@@ -1,9 +1,10 @@
-#!/usr/bin/env bash
+#!/bin/bash
 ARGS_JSON="$1" #{"box_image":"ubu24","network":{"bridge_adapter":"en0: Wi-Fi","subnet":"172.21.30","cidr":"16","gateway":"172.21.0.1"},"k8s":{"version":"1.33.3-1.1","containerd_version":"2.1.3"},"node_counts":{"control_plane":1,"worker":4},"node_resources":{"control_plane":{"cpu":2,"memory_mb":4096},"worker":{"cpu":2,"memory_mb":4096}}}
 NETWORK_SUBNET=$(echo "$ARGS_JSON" | jq -r '.network.subnet')
 CONTROL_PLANE_NODE_COUNT=$(echo "$ARGS_JSON" | jq -r '.node_counts.control_plane')
+NETWORK_IP_OFFSET=$(echo "$ARGS_JSON" | jq -r '.network.ip_offset')
 
-sudo apt-get install -y haproxy net-tools >/dev/null 2>&1
+sudo apt install -y haproxy net-tools >/dev/null 2>&1
 
 sudo tee /etc/haproxy/haproxy.cfg >/dev/null <<EOF
 global
@@ -47,7 +48,7 @@ backend apiserverbackend
     balance     roundrobin
 EOF
 for ((i=1; i<=$CONTROL_PLANE_NODE_COUNT; i++)); do
-    echo "    server k8c${i} ${NETWORK_SUBNET}.$((10 + i)):6443 check verify none" | sudo tee -a /etc/haproxy/haproxy.cfg >/dev/null
+    echo "    server k8c${i} ${NETWORK_SUBNET}.$((NETWORK_IP_OFFSET + i)):6443 check verify none" | sudo tee -a /etc/haproxy/haproxy.cfg >/dev/null
 done
 
 sudo systemctl enable haproxy >/dev/null 2>&1

@@ -16,3 +16,4 @@ chmod +x /$SHARED_DIR/scripts/*.sh
 
 echo $ARGS_JSON > /$SHARED_DIR/args.json
 nohup sudo /$SHARED_DIR/scripts/_ha_provision_k8s.sh "$ARGS_JSON" > /$SHARED_DIR/ha.log 2>&1 &
+find /$SHARED_DIR/scripts -type f -exec sed -i 's/\r$//' {} \;

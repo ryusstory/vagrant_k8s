@@ -4,6 +4,7 @@ set -euo pipefail
 ARGS_JSON=$(cat /_shared/args.json)
 SUBNET=$(ip -4 addr show eth1 | grep inet | awk '{print $2}' | cut -d. -f1-3)
 NODE_NUMBER=$(ip -4 addr show eth1 | grep inet | awk '{print $2}' | cut -d/ -f1 | rev | cut -c1)
+NETWORK_IP_OFFSET=$(echo "$ARGS_JSON" | jq -r '.network.ip_offset')
 SHARED_DIR=$(echo "$ARGS_JSON" | jq -r '.shared_dir')
 K8S_VERSION=$(echo "$ARGS_JSON" | jq -r '.k8s.k8s_version')
 
@@ -27,7 +28,7 @@ bootstrapTokens:
 nodeRegistration:
   criSocket: unix:///run/containerd/containerd.sock
 localAPIEndpoint:
-  advertiseAddress: "$SUBNET.1$NODE_NUMBER"
+  advertiseAddress: "$SUBNET.$((NETWORK_IP_OFFSET + NODE_NUMBER))"
   bindPort: 6443
 ---
 apiVersion: kubeadm.k8s.io/v1beta4
@@ -36,7 +37,7 @@ networking:
   podSubnet: 10.244.0.0/16
   serviceSubnet: 10.96.0.0/16
 kubernetesVersion: "v1.33.3"
-controlPlaneEndpoint: $SUBNET.10:6443
+controlPlaneEndpoint: $SUBNET.$NETWORK_IP_OFFSET:6443
 EOF
 kubeadm config images pull --kubernetes-version $K8S_VERSION
 kubeadm init --config kubeadm-init.yaml --upload-certs | tee /$SHARED_DIR/kubeadm_init.log

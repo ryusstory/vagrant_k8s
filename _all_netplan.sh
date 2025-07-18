@@ -25,3 +25,6 @@ EOF
 sudo chmod 600 /etc/netplan/99-mine.yaml
 sudo netplan generate
 sudo netplan apply
+# mirror ubuntu to kakao
+sudo sed -i 's|http://.*\.ubuntu\.com/ubuntu/|http://mirror.kakao.com/ubuntu/|g' /etc/apt/sources.list.d/ubuntu.sources
+sudo apt update -y >/dev/null 2>&1
