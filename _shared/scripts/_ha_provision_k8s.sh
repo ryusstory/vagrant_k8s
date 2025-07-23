@@ -57,11 +57,11 @@ if [[ ! -f "/$SHARED_DIR/kubeadm_control_join.sh" ]] || [[ ! -f "/$SHARED_DIR/ku
 fi
 
 for (( i=2; i<=CONTROL_PLANE_COUNT; i++ )); do
-    ssh $SSH_PREFIX@$NETWORK_SUBNET.$((NETWORK_IP_OFFSET + i)) "cp /$SHARED_DIR/kubeadm_control_join.sh /tmp/ && chmod +x /tmp/kubeadm_control_join.sh && sudo /tmp/kubeadm_control_join.sh $SHARED_DIR/args.json > /dev/null 2>&1" &
+    ssh $SSH_PREFIX@$NETWORK_SUBNET.$((NETWORK_IP_OFFSET + i)) "cp /$SHARED_DIR/kubeadm_control_join.sh /tmp/ && chmod +x /tmp/kubeadm_control_join.sh && sudo /tmp/kubeadm_control_join.sh > /dev/null 2>&1" &
 done
 echo "--- 워커 노드 조인 ---"
 for (( i=1; i<=WORKER_COUNT; i++ )); do
-    ssh $SSH_PREFIX@$NETWORK_SUBNET.$((NETWORK_IP_OFFSET + 10 + i)) "cp /$SHARED_DIR/kubeadm_worker_join.sh /tmp/ && chmod +x /tmp/kubeadm_worker_join.sh && sudo /tmp/kubeadm_worker_join.sh $SHARED_DIR/args.json > /dev/null 2>&1" &
+    ssh $SSH_PREFIX@$NETWORK_SUBNET.$((NETWORK_IP_OFFSET + 10 + i)) "cp /$SHARED_DIR/kubeadm_worker_join.sh /tmp/ && chmod +x /tmp/kubeadm_worker_join.sh && sudo /tmp/kubeadm_worker_join.sh > /dev/null 2>&1" &
 done
 
 echo "--- 노드 추가 설정---"

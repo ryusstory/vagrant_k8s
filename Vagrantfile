@@ -1,34 +1,11 @@
 # --- Variables ---
-CONFIG = {
-  box_image: 'bento/ubuntu-24.04',
-  shared_dir: '_shared',
-  network: {
-    # bridge_adapter: 'en0: Wi-Fi',
-    bridge_adapter: 'Hyper-V Virtual Ethernet Adapter #2',
-    subnet: '10.1.1',
-    ip_offset: 110, # 마지막 자릿수에 더해줄 10 단위 값 100이면 haproxy = 100, control = 101~, worker = 111~
-    cidr: 24,
-    gateway: '10.1.1.1'
-  },
-  k8s: {
-    k8s_version: '1.33.3',
-    containerd_version: '2.1.3'
-  },
-  node_counts: {
-    control_plane: 1,
-    worker: 1
-  },
-  node_resources: {
-    control_plane: {
-      cpu: 2,
-      memory_mb: 4096
-    },
-    worker: {
-      cpu: 2,
-      memory_mb: 4096
-    }
-  }
-}
+require 'json'
+
+begin
+  CONFIG = JSON.parse(File.read('config.json'), symbolize_names: true)
+rescue => e
+  CONFIG = JSON.parse(File.read('config.sample.json'), symbolize_names: true)
+end
 
 if CONFIG[:network][:ip_offset] % 10 != 0
   raise "Error: K8S_NETWORK_IP_OFFSET must be a multiple of 10. now #{CONFIG[:network][:ip_offset]}"
@@ -81,6 +58,7 @@ Vagrant.configure("2") do |config|
         "#{CONFIG[:network][:subnet]}.#{CONFIG[:network][:ip_offset]+i}", CONFIG[:network][:cidr], CONFIG[:network][:gateway]
       ]
       subconfig.vm.provision "shell", inline: "cat /_shared/ha_id_rsa.pub >> ~/.ssh/authorized_keys"
+      subconfig.vm.provision "shell", path: "_k8s_later_join.sh", args: [ CONFIG.to_json ]
     end
   end
 
@@ -99,6 +77,7 @@ Vagrant.configure("2") do |config|
         "#{CONFIG[:network][:subnet]}.#{CONFIG[:network][:ip_offset]+10+i}", CONFIG[:network][:cidr], CONFIG[:network][:gateway]
       ]
       subconfig.vm.provision "shell", inline: "cat /_shared/ha_id_rsa.pub >> ~/.ssh/authorized_keys"
+      subconfig.vm.provision "shell", path: "_k8s_later_join.sh", args: [ CONFIG.to_json ]
     end
   end
 end

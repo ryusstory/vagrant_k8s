@@ -1,7 +1,6 @@
 # 전역
 *.log
 *.pub
-*.json
 
 # .vagrant 폴더
 .vagrant/
