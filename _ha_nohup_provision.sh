@@ -5,7 +5,7 @@ SHARED_DIR=$(echo "$ARGS_JSON" | jq -r '.shared_dir')
 
 echo 'sudo su - && exit' >> /home/vagrant/.bashrc
 
-rm -f /$SHARED_DIR/*
+find /_shared/ -maxdepth 1 -type f -exec rm -f {} \;
 if [[ -f ~/.ssh/id_rsa ]]; then
     echo "SSH key pair already exists. Skipping generation."
 else

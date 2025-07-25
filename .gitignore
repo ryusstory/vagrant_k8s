@@ -7,3 +7,7 @@
 
 # _shared 내의 파일만
 _shared/*
+
+# 임시폴더
+tmp/
+tmp/**/*

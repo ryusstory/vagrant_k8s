@@ -7,7 +7,8 @@ NODE_NUMBER=$(ip -4 addr show eth1 | grep inet | awk '{print $2}' | cut -d/ -f1 
 NETWORK_IP_OFFSET=$(echo "$ARGS_JSON" | jq -r '.network.ip_offset')
 SHARED_DIR=$(echo "$ARGS_JSON" | jq -r '.shared_dir')
 K8S_VERSION=$(echo "$ARGS_JSON" | jq -r '.k8s.k8s_version')
-
+POD_SUBNET=$(echo "$ARGS_JSON" | jq -r '.k8s.pod_subnet')
+SERVICE_SUBNET=$(echo "$ARGS_JSON" | jq -r '.k8s.service_subnet')
 
 if [[ -f ~/.$(basename "$0").done ]]; then
     echo "This script has already been executed. Exiting."
@@ -34,8 +35,8 @@ localAPIEndpoint:
 apiVersion: kubeadm.k8s.io/v1beta4
 kind: ClusterConfiguration
 networking:
-  podSubnet: 10.244.0.0/16
-  serviceSubnet: 10.96.0.0/16
+  podSubnet: $POD_SUBNET
+  serviceSubnet: $SERVICE_SUBNET
 kubernetesVersion: "v1.33.3"
 controlPlaneEndpoint: $SUBNET.$NETWORK_IP_OFFSET:6443
 EOF
