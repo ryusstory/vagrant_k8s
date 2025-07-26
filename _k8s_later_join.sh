@@ -11,11 +11,13 @@ if [[ -f "/$SHARED_DIR/kubeadm_control_join.sh" ]] || [[ -f "/$SHARED_DIR/kubead
         echo "This is a control plane node."
         cp /$SHARED_DIR/kubeadm_control_join.sh /tmp/
         chmod +x /tmp/kubeadm_control_join.sh
+        sudo /tmp/_k8s_post_setting.sh
         sudo /tmp/kubeadm_control_join.sh
     elif [[ $HOSTNAME == k8w* ]]; then
         cp /$SHARED_DIR/kubeadm_worker_join.sh /tmp/
         chmod +x /tmp/kubeadm_worker_join.sh
         sudo /tmp/kubeadm_worker_join.sh
+        sudo /tmp/_k8s_post_setting.sh
         echo "This is a worker node."
     else
         echo "Unknown node type. Exiting."
