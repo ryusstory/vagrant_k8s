@@ -6,7 +6,11 @@
 .vagrant/
 
 # _shared 내의 파일만
-_shared/*
+_shared/*.json
+_shared/*.log
+_shared/kube_config
+_shared/*.pub
+_shared/*.sh
 
 # 임시폴더
 tmp/
