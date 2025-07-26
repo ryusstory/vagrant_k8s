@@ -9,12 +9,14 @@ SHARED_DIR=$(echo "$ARGS_JSON" | jq -r '.shared_dir')
 K8S_VERSION=$(echo "$ARGS_JSON" | jq -r '.k8s.k8s_version')
 POD_SUBNET=$(echo "$ARGS_JSON" | jq -r '.k8s.pod_subnet')
 SERVICE_SUBNET=$(echo "$ARGS_JSON" | jq -r '.k8s.service_subnet')
+K8S_CNI=$(echo "$ARGS_JSON" | jq -r '.k8s.cni')
+K8S_CILIUM_PROXY=$(echo "$ARGS_JSON" | jq -r '.k8s.cilium.proxy')
+NETWORK_IP_OFFSET=$(echo "$ARGS_JSON" | jq -r '.network.ip_offset')
 
 if [[ -f ~/.$(basename "$0").done ]]; then
     echo "This script has already been executed. Exiting."
     exit 0
 fi
-
 sudo tee kubeadm-init.yaml > /dev/null <<EOF
 apiVersion: kubeadm.k8s.io/v1beta4
 kind: InitConfiguration
@@ -40,6 +42,10 @@ networking:
 kubernetesVersion: "v1.33.3"
 controlPlaneEndpoint: $SUBNET.$NETWORK_IP_OFFSET:6443
 EOF
+if [[ $K8S_CNI == "cilium" ]] && [[ $K8S_CILIUM_PROXY == "false" ]]; then
+    yq 'select(.kind == "InitConfiguration").proxy.disabled = true' kubeadm-init.yaml
+fi
+
 kubeadm config images pull --kubernetes-version $K8S_VERSION
 kubeadm init --config kubeadm-init.yaml --upload-certs | tee /$SHARED_DIR/kubeadm_init.log
 if [ $? -ne 0 ]; then

@@ -27,6 +27,7 @@ rm -f /swapfile >/dev/null 2>&1
 
 apt update -qq >/dev/null 2>&1
 apt install apt-transport-https ca-certificates curl gpg -y -qq >/dev/null 2>&1
+wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq >/dev/null 2>&1 && chmod +x /usr/local/bin/yq
 
 # Download the public signing key for the Kubernetes package repositories.
 mkdir -p -m 755 /etc/apt/keyrings
@@ -42,6 +43,8 @@ sysctl --system >/dev/null 2>&1
 # enable br_netfilter for iptables 
 modprobe br_netfilter
 modprobe overlay
+modprobe vxlan
+modprobe geneve
 echo "br_netfilter" >> /etc/modules-load.d/k8s.conf
 echo "overlay" >> /etc/modules-load.d/k8s.conf
 

@@ -32,5 +32,15 @@ function get_cluster_short() {
 KUBE_PS1_CLUSTER_FUNCTION=get_cluster_short
 KUBE_PS1_SUFFIX=') '
 PS1='$(kube_ps1)'$PS1
+alias ll='ls -alF --color=auto'
 EOT
 kubectl config rename-context "kubernetes-admin@kubernetes" "lab" >/dev/null 2>&1
+
+echo "[TASK] Install K9S"
+wget https://github.com/derailed/k9s/releases/latest/download/k9s_linux_amd64.deb > /dev/null 2>&1
+sudo apt install ./k9s_linux_amd64.deb -y -qq >/dev/null 2>&1
+rm k9s_linux_amd64.deb
+
+curl -sL https://github.com/cilium/pwru/releases/download/v1.0.9/pwru-linux-amd64.tar.gz | tar -xz
+chmod +x pwru
+sudo mv pwru /usr/local/bin/
