@@ -40,14 +40,14 @@ Vagrant.configure("2") do |config|
     ]
     subconfig.vm.provision "shell", path: "_ha_setup_haproxy.sh", args: [ CONFIG.to_json ]
     subconfig.vm.provision "shell", path: "_ha_nohup_provision.sh", args: [ CONFIG.to_json ]
-    subconfig.vm.post_up_message = "\n tail -f #{CONFIG[:shared_dir]}/ha.log \n"
+    subconfig.vm.post_up_message = "vagrant ssh k8c1 -- tail -f /_shared/ha.log"
   end
 
   (1..CONFIG[:node_counts][:control_plane]).each do |i|
     config.vm.define "k8c#{i}" do |subconfig|
       subconfig.vm.provider :virtualbox do |v|
         v.cpus = CONFIG[:node_resources][:control_plane][:cpu]
-        v.memory = CONFIG[:node_resources][:control_plane][:memory_mb]
+        v.memory = CONFIG[:node_resources][:control_plane][:memory]
       end
       subconfig.vm.box = CONFIG[:box_image]
       subconfig.vm.synced_folder "./", "/vagrant", disabled: true
@@ -66,7 +66,7 @@ Vagrant.configure("2") do |config|
     config.vm.define "k8w#{i}" do |subconfig|
       subconfig.vm.provider :virtualbox do |v|
         v.cpus = CONFIG[:node_resources][:worker][:cpu]
-        v.memory = CONFIG[:node_resources][:worker][:memory_mb]
+        v.memory = CONFIG[:node_resources][:worker][:memory]
       end
       subconfig.vm.box = CONFIG[:box_image]
       subconfig.vm.synced_folder "./", "/vagrant", disabled: true
