@@ -1,8 +1,9 @@
 #!/bin/bash
-ARGS_JSON="$1"
-NETWORK_SUBNET=$(echo "$ARGS_JSON" | jq -r '.network.subnet')
-CONTROL_PLANE_NODE_COUNT=$(echo "$ARGS_JSON" | jq -r '.node_counts.control_plane')
-NETWORK_IP_OFFSET=$(echo "$ARGS_JSON" | jq -r '.network.ip_offset')
+echo "--- HAProxy configuration start ---"
+CIDR=$(cat /_shared/config.yaml | yq '.network.cidr')
+NETWORK_SUBNET=$(cat /_shared/config.yaml | yq '.network.subnet')
+CONTROL_PLANE_NODE_COUNT=$(cat /_shared/config.yaml | yq '.node_counts.control_plane')
+NETWORK_IP_OFFSET=$(cat /_shared/config.yaml | yq '.network.ip_offset')
 
 sudo apt install -y haproxy net-tools >/dev/null 2>&1
 
@@ -53,3 +54,5 @@ done
 
 sudo systemctl enable haproxy >/dev/null 2>&1
 sudo systemctl restart haproxy >/dev/null 2>&1
+
+echo "--- HAProxy configuration complete ---"
